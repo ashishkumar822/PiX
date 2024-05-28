@@ -16,7 +16,7 @@ PiX namely Pick-or-Mix (PiX) is an effective **multi-purpose module** for **dyna
 
 ## PiX in Fast Channel Squeezing Mode
 
-<img src="pic/pix_as_cs.PNG" width="360px"/>
+<img src="pic/pix_as_cs.png" width="360px"/>
 
 ## Installation
 
