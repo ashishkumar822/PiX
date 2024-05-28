@@ -294,9 +294,7 @@ def main(args):
         args.model, 
         pretrained=False,
         num_classes=args.nb_classes, 
-        act_num=args.act_num,
         drop_rate=args.drop,
-        deploy=args.deploy,
         )
 
     if args.finetune:
