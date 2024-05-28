@@ -108,7 +108,7 @@ class PiXResNet_stage(nn.Module):
 
 
 class PiXResNet(nn.Module):
-    def __init__(self, blocks=[3,4,6,3], strides=[1, 2, 2, 2], dropout = 0.1, n_classes=1000):
+    def __init__(self, blocks=[3,4,6,3], strides=[1, 2, 2, 2], dropout = 0.1, nb_classes=1000):
         super(PiXResNet, self).__init__()
 
         tau = 0.5
@@ -126,7 +126,7 @@ class PiXResNet(nn.Module):
         self.layer3 = PiXResNet_stage(n_ip[2], n_op[2], blocks[2], strides[2], reduction_factor_first[2], tau = tau)
         self.layer4 = PiXResNet_stage(n_ip[3], n_op[3], blocks[3], strides[3], reduction_factor_first[3], tau = tau)
 
-        self.classifier = nn.Conv2d(n_op[-1], n_classes, 1)
+        self.classifier = nn.Conv2d(n_op[-1], nb_classes, 1)
         self.gp = nn.AdaptiveAvgPool2d([-1, -1])
         self.dropout = nn.Dropout2d(dropout)
 
