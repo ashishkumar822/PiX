@@ -11,7 +11,10 @@ Official PyTorch implementation of **PiX**, from the following paper:\
 
 <img src="pic/pix.png" width="800px"/>
 
-PiX namely Pick-or-Mix (PiX) is an effective **multi-purpose module** for **dynamic channel sampling**. PiX divides a set of channels into subsets and then picks from them, where the **picking decision is dynamically made per each pixel** based on the input activations. PiX can perform **fast channel squeezing, network downscaling and also can behave as dynamic channel prunner**. In channel squezing mode, after replacing 1 × 1 channel squeezing layers in ResNet with PiX, the network becomes 25% faster without losing accuracy. 
+PiX is a dynamic channel sampling method is an innovative neural network architecture that focuses on **simplicity** and **efficiency**. Moving away from complex features such as **shortcuts** and **attention** mechanisms, VanillaNet uses a reduced number of layers while still **maintaining excellent performance**. This project showcases that it's possible to achieve effective results with a lean architecture, thereby setting a new path in the field of computer vision and challenging the status quo of foundation models. 
+
+
+PiX namely Pick-or-Mix (PiX) is an effective multi-purpose module for dynamic channel sampling. PiX divides a set of channels into subsets and then picks from them, where the picking decision is dynamically made per each pixel based on the input activations. PiX can perform fast channel squeezing, network downscaling and also can behave as dynamic channel prunner. In channel squezing mode, after replacing 1 × 1 channel squeezing layers in ResNet with PiX, the network becomes 25% faster without losing accuracy. 
 
 
 ## PiX in Fast Channel Squeezing Mode
