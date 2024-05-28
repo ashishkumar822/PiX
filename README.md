@@ -7,7 +7,7 @@
 
 Official PyTorch implementation of **PiX** in **CVPR 2024**, from the following paper:\
 [PiX: Dynamic Channel Sampling for ConvNets ](https://)\
-[Ashish Kumar](https://ashishkumar822.github.io), Daneul Kim, [Jaesik Park](https://jaesik.info/), [Laxmidhar Behera](https://scholar.google.co.in/citations?hl=en&user=QWTcyP8AAAAJ)
+[Ashish Kumar](https://ashishkumar822.github.io), [Daneul Kim](https://carpedkm.github.io), [Jaesik Park](https://jaesik.info/), [Laxmidhar Behera](https://scholar.google.co.in/citations?hl=en&user=QWTcyP8AAAAJ)
 
 <img src="pic/pix.png" width="800px"/>
 
