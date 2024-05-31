@@ -72,7 +72,7 @@ This repository is built using the [timm](https://github.com/rwightman/pytorch-i
 If our work is useful for your research, please consider citing:
 ```
 @article{pix,
-  title={Pick-or-Mix: Dyanmic Channel Sampling for ConvNets},
+  title={Pick-or-Mix: Dynamic Channel Sampling for ConvNets},
   author={Kumar, Ashish and Kim, Daneul and Park, Jaesik and Behera, Laxmidhar},
   journal={Computer Vision and Pattern Recognition},
   year={2024}
