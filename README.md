@@ -52,7 +52,7 @@ python setup.py install
 Now, you can use the following command to train PiX ResNet-50 on a single 8-GPU machine: 
 
 ```
-NCCL_P2P_LEVEL=PIX python -m torch.distributed.launch --nproc_per_node=8 \
+python -m torch.distributed.launch --nproc_per_node=8 \
 main.py --model PiXResNet50_cs \
 --data_path path_to_imagenet \
 --lr 3.5e-3 --weight_decay 0.35  --drop 0.05 \
