@@ -10,7 +10,7 @@ std::vector<torch::Tensor> pix_cuda_forward(
     torch::Tensor input,
     torch::Tensor p);
 
-std::vector<torch::Tensor> pixf_cuda_backward(
+std::vector<torch::Tensor> pix_cuda_backward(
     const int zeta,
     float tau,
    torch::Tensor input,
