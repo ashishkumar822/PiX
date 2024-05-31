@@ -42,7 +42,15 @@ Download the [ImageNet-1K](http://image-net.org/) classification dataset and str
 
 ## Training
 
-You can use the following command to train PiX ResNet-50 on a single 8-GPU machine: 
+Before Training PiX pytorch cuda plugin must be built. Follow the steps below:
+
+```
+cd models/layers
+python setup.py install
+```
+
+Now, you can use the following command to train PiX ResNet-50 on a single 8-GPU machine: 
+
 ```
 NCCL_P2P_LEVEL=PIX python -m torch.distributed.launch --nproc_per_node=8 \
 main.py --model PiXResNet50_cs \
