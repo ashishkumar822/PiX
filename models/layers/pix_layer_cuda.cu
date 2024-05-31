@@ -14,8 +14,8 @@ template <typename Dtype>
 __global__ void PiX_Forward_cuda_kernel(const int n_threads,
                                    int out_channels, int in_channels,
                                    int height, int width,
-                                   int k_size,
-                                   float SPCF_THRESH,
+                                   int zeta,
+                                   float tau,
                                    const Dtype* __restrict__ bottom_data,
                                    const Dtype* __restrict__ prob_data,
                                    Dtype* __restrict__ top_data)
@@ -30,12 +30,12 @@ __global__ void PiX_Forward_cuda_kernel(const int n_threads,
 
         Dtype prob = prob_data[n*out_channels+c];
 
-        int c_start = c * k_size;
-        int c_end   = c_start + k_size;
+        int c_start = c * zeta;
+        int c_end   = c_start + zeta;
         if(c_end > in_channels)
         c_end = in_channels;
 
-        if(prob < SPCF_THRESH)
+        if(prob < tau)
         {
             Dtype max_val = -FLT_MAX;
 //            int max_idx = c_start;
@@ -65,20 +65,18 @@ __global__ void PiX_Forward_cuda_kernel(const int n_threads,
                 avg_val += bottom_data[bottom_index];
             }
 
-//             top_data[thread_idx] =  (prob - SPCF_THRESH) * avg_val / k_size;
-            top_data[thread_idx] =  (prob) * avg_val / k_size;
-
+            top_data[thread_idx] =  (prob) * avg_val / zeta;
         }
     }
 }
 
 
 template <typename Dtype>
-__global__ void SPCF_mode5_Backward_cuda_kernel(const int n_threads,
+__global__ void PiX_Backward_cuda_kernel(const int n_threads,
                                     int out_channels, int in_channels,
                                     int height, int width,
-                                    int k_size,
-                                    float SPCF_THRESH,
+                                    int zeta,
+                                    float tau,
                                     const Dtype* __restrict__ bottom_data,
                                     const Dtype* __restrict__ top_diff,
                                     const Dtype* __restrict__ prob_data,
@@ -96,13 +94,13 @@ __global__ void SPCF_mode5_Backward_cuda_kernel(const int n_threads,
 
         Dtype prob = prob_data[n*out_channels+c];
 
-        int c_start = c * k_size;
-        int c_end   = c_start + k_size;
+        int c_start = c * zeta;
+        int c_end   = c_start + zeta;
         if(c_end > in_channels)
         c_end = in_channels;
 
 
-        if(prob < SPCF_THRESH)
+        if(prob < tau)
         {
             Dtype max_val = -FLT_MAX;
             int max_idx = c_start;
@@ -138,11 +136,11 @@ __global__ void SPCF_mode5_Backward_cuda_kernel(const int n_threads,
 
             for(int ch = c_start; ch < c_end; ch++)
             {
-                bottom_diff[((n*in_channels+ch)*height+h)*width+w] = (prob) * top_diff_val / k_size;
+                bottom_diff[((n*in_channels+ch)*height+h)*width+w] = (prob) * top_diff_val / zeta;
                 avg_val +=  bottom_data[((n*in_channels+ch)*height+h)*width+w];
             }
 
-            avg_val /= k_size;
+            avg_val /= zeta;
 
             prob_diff[((n*out_channels+c)*height+h)*width+w] =   top_diff_val * avg_val;
 
@@ -154,11 +152,11 @@ __global__ void SPCF_mode5_Backward_cuda_kernel(const int n_threads,
 
 
 
-std::vector<torch::Tensor> spcf_cuda_forward(
-    const int k_size,
-    float SPCF_THRESH,
+std::vector<torch::Tensor> pix_cuda_forward(
+    const int zeta,
+    float tau,
     torch::Tensor input,
-    torch::Tensor fusion_prob)
+    torch::Tensor prob)
 {
 
      int n = input.size(0);
@@ -166,7 +164,7 @@ std::vector<torch::Tensor> spcf_cuda_forward(
      int h = input.size(2);
      int w = input.size(3);
 
-     int out_c = ceil((float)in_c / k_size);
+     int out_c = ceil((float)in_c / zeta);
 
  torch::Tensor output = torch::zeros({n, out_c, h , w}, input.options());
 
@@ -185,15 +183,15 @@ std::vector<torch::Tensor> spcf_cuda_forward(
 
   c10::cuda::CUDAStream stream = c10::cuda::getCurrentCUDAStream();
 
-  AT_DISPATCH_FLOATING_TYPES(output.type(), "spcf_cuda_forward", ([&] {
-    SPCF_mode5_Forward_cuda_kernel<scalar_t><<<blocks, MAX_THREADS_PER_BLOCK,0,stream>>>(
+  AT_DISPATCH_FLOATING_TYPES(output.type(), "pix_cuda_forward", ([&] {
+    PiX_Forward_cuda_kernel<scalar_t><<<blocks, MAX_THREADS_PER_BLOCK,0,stream>>>(
         n_threads,
         out_c, in_c,
         h, w,
-        k_size,
-        SPCF_THRESH,
+        zeta,
+        tau,
         (scalar_t*)input.data_ptr(),
-        (scalar_t*)fusion_prob.data_ptr(),
+        (scalar_t*)prob.data_ptr(),
         (scalar_t*)output.data_ptr());
   }));
 
@@ -204,10 +202,10 @@ std::vector<torch::Tensor> spcf_cuda_forward(
 }
 
 std::vector<torch::Tensor> spcf_cuda_backward(
-    const int k_size,
-    float SPCF_THRESH,
+    const int zeta,
+    float tau,
     torch::Tensor input,
-    torch::Tensor fusion_prob,
+    torch::Tensor prob,
     torch::Tensor output_grad)
 {
       int n = input.size(0);
@@ -215,7 +213,7 @@ std::vector<torch::Tensor> spcf_cuda_backward(
      int h = input.size(2);
      int w = input.size(3);
 
-     int out_c = ceil((float)in_c / k_size);
+     int out_c = ceil((float)in_c / zeta);
 
   torch::Tensor input_grad = torch::zeros_like(input);
   torch::Tensor prob_grad = torch::zeros_like(output_grad);
@@ -226,16 +224,16 @@ std::vector<torch::Tensor> spcf_cuda_backward(
 
   c10::cuda::CUDAStream stream = c10::cuda::getCurrentCUDAStream();
 
-  AT_DISPATCH_FLOATING_TYPES(output_grad.type(), "spcf_cuda_backward", ([&] {
-    SPCF_mode5_Backward_cuda_kernel<scalar_t><<<blocks, MAX_THREADS_PER_BLOCK,0,stream>>>(
+  AT_DISPATCH_FLOATING_TYPES(output_grad.type(), "pix_cuda_backward", ([&] {
+    PiX_Backward_cuda_kernel<scalar_t><<<blocks, MAX_THREADS_PER_BLOCK,0,stream>>>(
         n_threads,
         out_c, in_c,
         h, w,
-        k_size,
-        SPCF_THRESH,
+        zeta,
+        tau,
         (scalar_t*)input.data_ptr(),
         (scalar_t*)output_grad.data_ptr(),
-        (scalar_t*)fusion_prob.data_ptr(),
+        (scalar_t*)prob.data_ptr(),
         (scalar_t*)prob_grad.data_ptr(),
         (scalar_t*)input_grad.data_ptr()
         );

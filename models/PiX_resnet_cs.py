@@ -150,7 +150,7 @@ class PiXResNet(nn.Module):
 
         x = self.gp(x)
         x = self.dropout(x)
-        
+
         x = self.classifier(x)
 
         return x

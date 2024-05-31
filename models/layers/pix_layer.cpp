@@ -8,13 +8,13 @@ std::vector<torch::Tensor> pix_cuda_forward(
     const int zeta,
     const float tau,
     torch::Tensor input,
-    torch::Tensor fusion_prob);
+    torch::Tensor p);
 
 std::vector<torch::Tensor> pixf_cuda_backward(
     const int zeta,
     float tau,
    torch::Tensor input,
-    torch::Tensor fusion_prob,
+    torch::Tensor p,
     torch::Tensor output_grad);
 
 // C++ interface
