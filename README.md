@@ -73,7 +73,7 @@ If our work is useful for your research, please consider citing:
 ```
 @article{pix,
   title={Pick-or-Mix: Dyanmic Channel Sampling for ConvNets},
-  author={Chen, Hanting and Wang, Yunhe and Guo, Jianyuan and Tao, Dacheng},
+  author={Kumar, Ashish and Kim, Daneul and Park, Jaesik and Behera, Laxmidhar},
   journal={Computer Vision and Pattern Recognition},
   year={2024}
 }
