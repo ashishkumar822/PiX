@@ -1,7 +1,0 @@
-pix_layer.cpp
-pix_layer_cuda.cu
-setup.py
-pix_layer.egg-info/PKG-INFO
-pix_layer.egg-info/SOURCES.txt
-pix_layer.egg-info/dependency_links.txt
-pix_layer.egg-info/top_level.txt
