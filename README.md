@@ -44,15 +44,14 @@ Download the [ImageNet-1K](http://image-net.org/) classification dataset and str
 
 You can use the following command to train PiX ResNet-50 on a single 8-GPU machine: 
 ```
-python -m torch.distributed.launch --nproc_per_node=8 main.py \
---model PiXResNet50_cs \
---data_path /path/to/imagenet-1k \
---batch_size 128 --update_freq 1  --epochs 300 --decay_epochs 100 \ 
+NCCL_P2P_LEVEL=PIX python -m torch.distributed.launch --nproc_per_node=8 \
+main.py --model PiXResNet50_cs \
+--data_path path_to_imagenet \
 --lr 3.5e-3 --weight_decay 0.35  --drop 0.05 \
---opt lamb --aa rand-m7-mstd0.5-inc1 --mixup 0.1 --bce_loss \
---output_dir /path/to/save_results \
---model_ema true --model_ema_eval true --model_ema_decay 0.99996 \
---use_amp true 
+--opt lamb --aa rand-m7-mstd0.5-inc1 --mixup 0.15 --bce_loss
+--output_dir /dir_for_saving_models \
+--model_ema true --model_ema_eval true --model_ema_decay 0.99996 
+--batch_size 128 
 ```
 
 - Effective batch size = `--nproc_per_node` * `--batch_size` * `--update_freq`. 

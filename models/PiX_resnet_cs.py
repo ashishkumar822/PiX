@@ -12,7 +12,7 @@ import pix_layer_cuda
 from timm.models.registry import register_model
 
 # gradients in the backward are received in the order of tensor as they were output in forward function
-class PixOperator(torch.autograd.Function):
+class PiXOperator(torch.autograd.Function):
     @staticmethod
     def forward(ctx, zeta: int, tau: float,  input: torch.Tensor, p: torch.Tensor):
         outputs = pix_layer_cuda.forward(zeta, tau, input, p)
@@ -43,8 +43,6 @@ class PixBottleneck(nn.Module):
     def __init__(self, n_ip, n_op, stride, reduction_ratio, use_projection, tau = 0.5):
         super(PixBottleneck, self).__init__()
 
-        self.bn_momentum = 0.05
-
         self.use_projection = use_projection
         sqz_n_op = int(n_ip / reduction_ratio)
 
@@ -55,16 +53,16 @@ class PixBottleneck(nn.Module):
 
 
         self.conv_ce = nn.Conv2d(sqz_n_op, sqz_n_op, 3, stride, 1, bias=False)
-        self.bn_ce = nn.BatchNorm2d(sqz_n_op, momentum=self.bn_momentum)
+        self.bn_ce = nn.BatchNorm2d(sqz_n_op)
         self.relu_ce = nn.ReLU(True)
 
         self.conv_exp = nn.Conv2d(sqz_n_op, n_op, 1, 1, 0, bias=False)
-        self.bn_exp = nn.BatchNorm2d(n_op, momentum=self.bn_momentum)
+        self.bn_exp = nn.BatchNorm2d(n_op)
         self.final_relu = nn.ReLU(True)
 
         if(self.use_projection):
             self.conv_proj = nn.Conv2d(n_ip, n_op, 1, stride, 0, bias=False)
-            self.bn_proj = nn.BatchNorm2d(n_op, momentum=self.bn_momentum)
+            self.bn_proj = nn.BatchNorm2d(n_op)
 
         self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -89,7 +87,7 @@ class PixBottleneck(nn.Module):
 
 
 class PiXResNet_stage(nn.Module):
-    def __init__(self, n_ip, n_op, n_blocks, stride, reduction_factor_first, tau, bn_momentum=0.05):
+    def __init__(self, n_ip, n_op, n_blocks, stride, reduction_factor_first, tau):
         super(PiXResNet_stage, self).__init__()
 
         self.blocks = nn.ModuleList()
@@ -98,7 +96,7 @@ class PiXResNet_stage(nn.Module):
             strd = stride if (i==0) else 1
             reduction_ratio = reduction_factor_first if (i==0) else 4
             n_ip = n_ip if (i==0) else n_op
-            self.blocks.append(PixBottleneck(n_ip, n_op, strd, reduction_ratio, use_projection, tau=tau, bn_momentum=bn_momentum))
+            self.blocks.append(PixBottleneck(n_ip, n_op, strd, reduction_ratio, use_projection, tau=tau))
 
     def forward(self, x):
         for i in range(len(self.blocks)):
@@ -108,13 +106,13 @@ class PiXResNet_stage(nn.Module):
 
 
 class PiXResNet(nn.Module):
-    def __init__(self, blocks=[3,4,6,3], strides=[1, 2, 2, 2], nb_classes=1000, drop = 0.1):
+    def __init__(self, blocks=[3,4,6,3], strides=[1, 2, 2, 2], num_classes=1000, drop_rate = 0.1):
         super(PiXResNet, self).__init__()
 
         tau = 0.5
 
         self.conv_stem = nn.Conv2d(3, 64, 7, 2, 3, bias=False)
-        self.bn_stem = nn.BatchNorm2d(64, momentum= 0.05)
+        self.bn_stem = nn.BatchNorm2d(64)
         self.relu_stem = nn.ReLU(True)
         self.pool = nn.MaxPool2d(3,2,1)
 
@@ -126,9 +124,10 @@ class PiXResNet(nn.Module):
         self.layer3 = PiXResNet_stage(n_ip[2], n_op[2], blocks[2], strides[2], reduction_factor_first[2], tau = tau)
         self.layer4 = PiXResNet_stage(n_ip[3], n_op[3], blocks[3], strides[3], reduction_factor_first[3], tau = tau)
 
-        self.classifier = nn.Conv2d(n_op[-1], nb_classes, 1)
-        self.gp = nn.AdaptiveAvgPool2d([-1, -1])
-        self.dropout = nn.Dropout2d(drop)
+        self.classifier = nn.Conv2d(n_op[-1], num_classes, 1)
+        self.gp = nn.AdaptiveAvgPool2d((1, 1))
+        print(drop_rate)
+        self.dropout = nn.Dropout2d(drop_rate)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -152,6 +151,9 @@ class PiXResNet(nn.Module):
         x = self.dropout(x)
 
         x = self.classifier(x)
+
+        bs = x.size(0)
+        x = torch.reshape(x, [bs, -1])
 
         return x
 
