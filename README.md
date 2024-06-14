@@ -40,6 +40,10 @@ Download the [ImageNet-1K](http://image-net.org/) classification dataset and str
       img4.jpeg
 ```
 
+## Checkpoint
+
+Download the pre-trained checkpoint from [here](https://drive.google.com/file/d/1zOVwP__lO60dIwDNqXArGJ14F0aWDjjm/view?usp=sharing)
+
 ## Training
 
 Before Training PiX pytorch cuda plugin must be built. Follow the steps below:
